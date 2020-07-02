@@ -115,10 +115,10 @@ New-Push SFML
 $SFMLBuiltDir = Get-Location # The directory where SFML was built to. Used later to direct cmake when building CSFML
 
 cmake `
-    '-DBUILD_SHARED_LIBS=0' `
+    '-DBUILD_SHARED_LIBS=1' `
     '-DCMAKE_BUILD_TYPE=Release' `
     '-DCMAKE_SYSTEM_VERSION=8.1' `
-    '-DSFML_USE_STATIC_STD_LIBS=1' `
+    '-DSFML_USE_STATIC_STD_LIBS=0' `
     "-G$Generator" `
     "-A$Architecture" `
     $SFMLDir
@@ -141,7 +141,7 @@ $CSFMLLibDir = (Get-Item lib).FullName; # The directory where the final CSFML dl
 
 cmake `
     "-DSFML_DIR=$SFMLBuiltDir" `
-    '-DCSFML_LINK_SFML_STATICALLY=1' `
+    '-DCSFML_LINK_SFML_STATICALLY=0' `
     "-DCMAKE_LIBRARY_PATH=$SFMLExtLibs" `
     `
     "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=$CSFMLLibDir" `
@@ -194,10 +194,22 @@ function Copy-Module($module) {
     Copy-Item "$CSFMLLibDir/csfml-$module-2.dll" "$OutDir/csfml-$module.dll" -Force > $null
 }
 
+function Copy-Sfml-Module($module) {
+    Write-Output "Copying SFML $module"
+
+    New-Item -ItemType Directory $OutDir -ErrorAction Ignore > $null
+    Copy-Item "$SFMLBuiltDir/lib/Release/sfml-$module-2.dll" "$OutDir/sfml-$module-2.dll" -Force > $null
+}
+
 Copy-Module 'Audio'
 Copy-Module 'Graphics'
 Copy-Module 'System'
 Copy-Module 'Window'
+
+Copy-Sfml-Module 'audio'
+Copy-Sfml-Module 'graphics'
+Copy-Sfml-Module 'system'
+Copy-Sfml-Module 'window'
 
 Write-Output "Copying Audio module extra files"
 Copy-Item "$SFMLAudioExtras/*" "$OutDir"
